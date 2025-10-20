@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weather Checker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1: #74ABE2;
+      --bg2: #5563DE;
+      --card: rgba(255,255,255,0.08);
+      --glass: rgba(255,255,255,0.06);
+      --accent: #fff;
+      --muted: rgba(255,255,255,0.85);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+
+    body{
+      background: radial-gradient(800px 400px at 10% 10%, rgba(255,255,255,0.06), transparent 10%),
+                  radial-gradient(600px 300px at 90% 90%, rgba(0,0,0,0.06), transparent 10%),
+                  linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:var(--accent);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:40px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      width:100%;
+      max-width:740px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border-radius:18px;
+      padding:28px;
+      box-shadow: 0 8px 30px rgba(10,10,20,0.35);
+      backdrop-filter: blur(8px) saturate(120%);
+      border: 1px solid rgba(255,255,255,0.06);
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      gap:20px;
+      align-items:center;
+    }
+
+    @media (max-width:860px){
+      .wrap{ grid-template-columns: 1fr; max-width:420px; padding:20px }
+    }
+
+    .left{
+      padding:18px 10px;
+    }
+
+    h1{
+      margin:0 0 6px 0;
+      font-size:22px;
+      letter-spacing:0.2px;
+      font-weight:600;
+      color:var(--accent);
+    }
+    p.lead{
+      margin:0 0 18px 0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .search{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .input{
+      position:relative;
+      flex:1;
+    }
+
+    input[type="text"]{
+      width:100%;
+      padding:12px 14px 12px 42px;
+      background:var(--card);
+      border:none;
+      color:var(--accent);
+      border-radius:10px;
+      font-size:14px;
+      outline:none;
+      transition:box-shadow .18s, transform .12s;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+    input[type="text"]:focus{
+      box-shadow: 0 6px 22px rgba(0,0,0,0.22);
+      transform: translateY(-1px);
+    }
+
+    .input .icon{
+      position:absolute;
+      left:12px;
+      top:50%;
+      transform:translateY(-50%);
+      width:18px;height:18px;opacity:0.9;
+      display:flex;align-items:center;justify-content:center;
+    }
+
+    button{
+      background:linear-gradient(180deg,#3a4def,#2239d6);
+      color:white;
+      border:none;
+      padding:12px 18px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      transition:transform .12s, box-shadow .12s;
+      box-shadow: 0 6px 18px rgba(34,57,214,0.18);
+    }
+    button:hover{ transform: translateY(-2px) }
+    button:active{ transform: translateY(0) }
+
+    .right{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:18px;
+      border-radius:12px;
+      min-height:160px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      gap:10px;
+    }
+
+    #result{ width:100%; text-align:left; color:var(--muted); font-size:14px; line-height:1.45; opacity:0.98; transition:opacity .18s }
+    #result .title{ color:var(--accent); font-weight:600; font-size:18px; margin-bottom:6px }
+    #result .meta{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; color:var(--muted) }
+    .big-temp{ font-size:48px; font-weight:700; color:var(--accent); margin:0 0 6px 0 }
+    .small{ font-size:12px; color:rgba(255,255,255,0.7) }
+
+    .status{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+    }
+
+    .weather-emoji{
+      font-size:42px;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.28));
+    }
+
+    .muted-note{ color:rgba(255,255,255,0.6); font-size:12px; margin-top:6px; text-align:center }
+
+    /* spinner */
+    .spinner{
+      width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,0.15);border-top-color:#fff;animation:spin .9s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* subtle appear */
+    .fade-in{ animation:fadeIn .28s ease both }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+
+    footer{ margin-top:12px; font-size:12px; color:rgba(255,255,255,0.6); text-align:center }
+  </style>
+</head>
+<body>
+  <div class="wrap fade-in" role="main">
+    <div class="left">
+      <h1>🌤️ Weather App</h1>
+      <p class="lead">Quickly check current conditions for any city. Type a place and press Check or Enter.</p>
+
+      <div class="search" aria-label="Search city">
+        <div class="input">
+          <div class="icon">📍</div>
+          <input id="city" type="text" placeholder="Enter city name" aria-label="City name">
+        </div>
+        <button id="checkBtn" onclick="getWeather()">Check</button>
+      </div>
+
+      <div class="muted-note">Data sourced from your server's weather endpoint</div>
+    </div>
+
+    <div class="right" aria-live="polite">
+      <div id="result">
+        <div class="status" style="flex-direction:column;align-items:center">
+          <div class="spinner" title="idle"></div>
+          <div class="small">Enter a city to see the forecast</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const cityInput = document.getElementById('city');
+    const resultDiv = document.getElementById('result');
+    const checkBtn = document.getElementById('checkBtn');
+
+    cityInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') getWeather();
+    });
+
+    function emojiFor(desc) {
+      if (!desc) return '🌤️';
+      desc = desc.toLowerCase();
+      if (desc.includes('cloud')) return '☁️';
+      if (desc.includes('rain')) return '🌧️';
+      if (desc.includes('thunder')) return '⛈️';
+      if (desc.includes('snow')) return '❄️';
+      if (desc.includes('clear') || desc.includes('sun')) return '☀️';
+      if (desc.includes('mist') || desc.includes('fog')) return '🌫️';
+      return '🌤️';
+    }
+
+    async function getWeather() {
+      const city = cityInput.value.trim();
+      if (!city) {
+        resultDiv.innerHTML = '<div class="title">Please enter a city name.</div>';
+        return;
+      }
+
+      resultDiv.innerHTML = `
+        <div class="status" style="gap:12px">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="small">Fetching weather for <strong>${city}</strong>…</div>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(`/weather?city=${encodeURIComponent(city)}`);
+        const data = await res.json();
+
+        if (data.error) {
+          resultDiv.innerHTML = `<div class="title">❌ ${data.error}</div>`;
+          return;
+        }
+
+        const emoji = emojiFor(data.description || '');
+        resultDiv.innerHTML = `
+          <div style="display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+            <div style="flex:1;min-width:160px">
+              <div class="title">${data.city}${data.country ? ', ' + data.country : ''}</div>
+              <div class="big-temp">${Math.round(data.temp)}°C</div>
+              <div class="small">Feels like ${Math.round(data.feels_like)}°C • ${data.description}</div>
+            </div>
+
+            <div style="width:120px;text-align:center">
+              <div class="weather-emoji" aria-hidden="true">${emoji}</div>
+              <div class="meta" style="margin-top:6px">
+                <div class="small">💧 ${data.humidity}%</div>
+                <div class="small">💨 ${data.wind_speed} m/s</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="muted-note">Last updated: ${new Date().toLocaleTimeString()}</div>
+        `;
+      } catch (err) {
+        console.error(err);
+        resultDiv.innerHTML = '<div class="title">⚠️ Error fetching weather data.</div>';
+      }
+    }
+  </script>
+</body>
+</html>
